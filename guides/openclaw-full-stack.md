@@ -50,15 +50,16 @@ Five things. Everything else in this guide is optional until a real task says ot
 | Piece | Why |
 |--|--------|
 | **OpenClaw** 2026.9.x | The agent gateway: channels, sessions, tools, automations, memory |
-| **Node.js 26** | OpenClaw's runtime (24.16+ also works) |
+| **Node.js 26.1+** | OpenClaw's runtime (24.16+ also works) |
 | **Claude Code** | The Claude login OpenClaw reuses, and a coding agent in its own right |
 | **Tailscale** | Private network between your machines; nothing exposed to the internet |
 | **git + gh** | Version the workspace; GitHub from the command line |
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash   # or: npx openclaw@latest
+curl -fsSL https://openclaw.ai/install.sh | bash   # installs the CLI, runs onboarding
+# Quick start keeps the gateway in the foreground: Ctrl+C, then
 openclaw gateway install                           # run it in the background
-openclaw channels status                           # then message it from your phone
+openclaw channels status --probe                   # then message it from your phone
 brew install gh jq tailscale                       # third-party (Homebrew)
 ```
 
@@ -70,7 +71,7 @@ One subscription for judgement, local models for volume. That split is most of w
 
 | Role | What we run |
 |---|------|
-| Main reasoning | Claude via subscription login, thinking high, fast mode off; Opus 5.5 for hard problems |
+| Main reasoning | Claude via subscription login, thinking high; Opus 5.5 suggested for hard problems |
 | Fallbacks | A second model via `openclaw models fallbacks add <model>`, so an outage doesn't stop the agent |
 | Local bulk work | **Ollama** with Qwen 3.5 35B: summarising and extracting from meeting recordings (~27,000 calls in September) |
 | Transcription | **mlx-whisper** `large-v3-turbo` on Apple silicon: every voice note |
@@ -81,12 +82,13 @@ brew install ollama              # third-party (Homebrew)
 ollama pull <model-tag>          # third-party: tag from the Ollama library (35B: big-RAM Mac)
 # third-party (PyPI), Apple silicon; venv: see Python
 uv pip install --python ~/.openclaw/venv/bin/python mlx-whisper
-openclaw models status           # what's configured, and which auth is live
+openclaw models status           # configured routes and auth (not billing)
 ```
 
 ::: lesson
-- **Local models are free per call and keep private data on the machine**, which is exactly why they sprawl. We once found about 150 GB of models nothing had touched in weeks. Pull what you use.
-- **Check how you're billed, don't assume.** A provider name doesn't prove subscription versus per-token billing; `openclaw models status` shows which auth is actually live. A subscription swaps a bill for usage limits, and the provider can change those terms. For shared production automation the docs recommend an API key.
+- **Installed isn't wired.** By default memory search uses OpenAI embeddings and voice notes go to any configured audio provider before a local tool. Set `memory.search.provider`, pin transcription, and point jobs at `ollama/<model-tag>` (Bible, Media chapter).
+- **Local models have no per-call bill and keep private data on the machine**, which is exactly why they sprawl. We once found about 150 GB of models nothing had touched in weeks. Pull what you use.
+- **Check how you're billed, don't assume.** A provider name doesn't prove subscription versus per-token billing; `openclaw models status` shows the configured auth, `/model status` shows what a session really uses, and only the provider's console proves billing. A subscription swaps a bill for usage limits, and the provider can change those terms. For shared production automation the docs recommend an API key.
 :::
 
 # Command-line tools {#cli}
@@ -211,9 +213,9 @@ Everything connects over Tailscale and SSH from the admin Mac mini. No ports ope
 1. Install OpenClaw and finish onboarding (Quick start reuses your Claude login).
 2. `openclaw gateway install`, connect one channel (your own WhatsApp or Telegram chat), then message the agent from your phone and get a reply.
 3. Write `SOUL.md`, `USER.md` and the first rules in `AGENTS.md`. **This is the most important step.**
-4. `openclaw config set tools.exec.mode deny` for week 1 (switch to `ask` in week 2, per the Bible's trust ladder), `openclaw gateway restart`, then `openclaw security audit`.
-5. Add Google (`gog`) read-only: calendar first, then email.
-6. Turn on a morning brief automation (`openclaw automations create`).
+4. Week 1 lock-down: `tools.exec.mode deny`, `tools.fs.workspaceOnly true`, browser denied (commands in the Bible's Security chapter), `openclaw gateway restart`, then `openclaw security audit`. Week 2: switch to `ask`.
+5. Week 4: add Google (`gog`) read-only, calendar first, then email. `gog` is a CLI, so it needs `ask` mode, not `deny`.
+6. Week 5: turn on a morning brief automation (`openclaw automations create`, with `--channel` and `--to`).
 7. Put the workspace under git and take a backup (`openclaw backup create`).
 8. Only now add local models, more channels, more skills and more machines, one at a time.
 

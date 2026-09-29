@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="./start-here/ai-chief-of-staff-starter.pdf"><b>Start here (3 pages)</b></a> •
-  <a href="./openclaw-bible.pdf">OpenClaw Bible (17 pages)</a> •
+  <a href="./openclaw-bible.pdf">OpenClaw Bible (18 pages)</a> •
   <a href="./openclaw-full-stack.pdf">Full Stack (6 pages)</a> •
   <a href="https://docs.openclaw.ai">OpenClaw Docs</a>
 </p>
@@ -38,10 +38,10 @@
 ### 1) Start here: AI chief of staff starter (3 pages)
 The five ideas that turned a chatbot into a chief of staff, a first-week plan, what not to automate yet, and the mistakes I made. No code.
 
-### 2) The OpenClaw Bible (17 pages)
+### 2) The OpenClaw Bible (18 pages)
 The field manual, in three parts. Every chapter has **the setup** (how OpenClaw works today, commands checked against 2026.9.x) and **the lessons** (what running it for real taught me):
 - **Receipts:** what the system actually does day to day, the numbers (94 automations, 18 agents, ~440 self-written scripts, a ~6,700-page knowledge graph), four real formats, and a table of everything that went wrong and what changed
-- **How I tokenmaxx:** why it isn't a token destroyer. Subscription login instead of per-token billing, local models for bulk work, small bootstrap files so 98–100% of each turn comes from prompt cache, the right model per job, fresh sessions, fallbacks
+- **How I tokenmaxx:** why it isn't a token destroyer. Subscription login instead of per-token billing, local models for bulk work, small bootstrap files so `/status` shows a 98–100% prompt-cache hit rate, the right model per job, fresh sessions, fallbacks
 - an architecture diagram, from your phone to the models
 - installing and onboarding (reusing your Claude login)
 - the workspace and the **Soul Stack** (`SOUL.md`, `AGENTS.md`, `USER.md`, `MEMORY.md`)
@@ -67,18 +67,18 @@ A snapshot of the live toolchain: core install, Claude plus local models (Ollama
 ## Quick start
 
 ```bash
-npx openclaw@latest            # or: curl -fsSL https://openclaw.ai/install.sh | bash
+curl -fsSL https://openclaw.ai/install.sh | bash   # or try first with: npx openclaw@latest
+# Quick start runs the gateway in the foreground: Ctrl+C, then
 openclaw gateway install       # keep it running in the background
-openclaw channels status       # are your chat apps actually connected?
+openclaw channels status --probe   # live check that your chat apps work
 openclaw dashboard
 ```
 
 Then:
 1. write your `SOUL.md` and `USER.md`
-2. lock shell commands down for week 1 (`openclaw config set tools.exec.mode deny`, then `openclaw gateway restart`; move to `ask` in week 2) and run `openclaw security audit`
-3. connect one channel (your own chat)
-4. turn on one automation: a morning brief
-5. check it end to end: message it from your phone and get a real answer
+2. lock it down for week 1 (no shell, file tools inside the workspace, no browser: see the Bible's Security chapter; move to `ask` in week 2) and run `openclaw security audit`
+3. connect one channel (your own chat) and check it end to end: message it from your phone and get a real answer
+4. climb the trust ladder one rung a week: read-only calendar and email in week 4, the first automation (a morning brief) in week 5
 
 ## Related repos
 

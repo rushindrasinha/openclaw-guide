@@ -3,7 +3,7 @@
 <div class="grid"></div><div class="glow g1"></div><div class="glow g2"></div>
 <div class="kicker">FIELD MANUAL · SEPTEMBER 2026 · OPENCLAW 2026.9.x</div>
 <h1 class="ct">The OpenClaw <em>Bible</em></h1>
-<p class="sub">How I run a self-hosted AI chief of staff every day, what it actually does, what it costs, and everything that broke along the way.</p>
+<p class="sub">How I run a self-hosted AI chief of staff every day, what it actually does, why it doesn't burn tokens, and everything that broke along the way.</p>
 <div class="strip">
 <div><b>~10 mo</b><span>running daily</span></div>
 <div><b>94</b><span>scheduled automations</span></div>
@@ -39,7 +39,7 @@ Start locked down. Loosen slowly. An agent earns trust the way a new hire does: 
 :::
 
 ::: howto
-**Deciding if it's worth it?** Read Part I: what it does, the receipts, what it costs.
+**Deciding if it's worth it?** Read Part I: what it does, the receipts, and how it keeps token use sane.
 
 **Setting up?** Part II, in order. Don't skip Security.
 
@@ -113,7 +113,7 @@ OpenClaw is a self-hosted AI agent gateway. You run it on your own machine (a Ma
 
 Read it left to right. You message from your phone. The **gateway**, always on, receives it and routes it to an agent (bindings decide which one). The **agent** loads its soul stack and searches its memory, then acts through **tools, skills and automations**, thinking with **models**: Claude in the cloud for judgement, local models for bulk work. The reply lands in the same chat.
 
-- **Self-hosted.** Your data, config and memory stay on your machine.
+- **Self-hosted.** Config, sessions and memory are stored on your machine. What you send still goes to the model and chat providers you choose.
 - **Multi-channel, multi-model.** One agent, many chat apps, any mix of providers, with fallbacks.
 - **Real access.** Shell, files, browser, devices, network, governed by permission modes you control.
 
@@ -139,11 +139,11 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 <div class="stat"><b>~327</b><span>skills available to the agent, about 290 of them ready</span></div>
 <div class="stat"><b>823</b><span>commits to its own workspace repo</span></div>
 <div class="stat"><b>7</b><span>machines in the fleet, one admin Mac mini</span></div>
-<div class="stat"><b>~27,000</b><span>local model calls in September, no per-call bill</span></div>
-<div class="stat hot"><b><em>98–100%</em></b><span>of each main-agent turn served from prompt cache</span></div>
+<div class="stat"><b>~27,000</b><span>local model calls in September, no per-call bill on hardware already running</span></div>
+<div class="stat hot"><b><em>98–100%</em></b><span>prompt-cache hit rate on main-agent turns, as <code>/status</code> reports it</span></div>
 <div class="stat"><b>15 <small>min</small></b><span>between checks that every scheduled job really produced its output</span></div>
 </div>
-<div class="cap"><b>Fig 2</b> · The live system, September 2026. Rounded, not polished.</div>
+<div class="cap"><b>Fig 2</b> · The live system, counted 28–29 September 2026. Rounded, not polished. These count what exists, not what it achieved; the failure table below is the honest part.</div>
 ```
 
 ## A normal day
@@ -198,7 +198,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 
 | What went wrong | What we changed |
 |---|---|
-| On low-effort settings it confidently recommended a restaurant from a 9-month-old listing | Thinking high for the main agent, fast mode off |
+| On low-effort settings it confidently recommended a restaurant from a 9-month-old listing | Thinking high for the main agent |
 | An approved email went out hours later, after I had already sent it myself | Stale approvals trigger a re-read of the thread before acting |
 | Health checks fired the same alert every run until I ignored all of them | Every alert goes through a gate: dedupe, cooldown, repeat only on escalation |
 | Jobs reported "done" with no output on disk | Declared artifacts plus the 15-minute verifier (Receipt D) |
@@ -211,7 +211,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 ::: lesson
 - **Ask for artifacts, not demos.** When you evaluate any agent setup, mine included, ask to see the brief that landed, the file that exists and the log of what failed and what changed.
 - **Most of the value is boring.** A brief that's right, a follow-up that didn't slip, a voice note that became a task. Nothing here is magic. It's a hundred small jobs that now happen without me.
-- **Every row in that failure table cost me something.** Each one is now a single line in a rules file, which is why it hasn't happened twice.
+- **Every row in that failure table cost me something.** Each one is now a single line in a rules file. That doesn't make it impossible, it makes the same mistake much less likely to get a second go.
 :::
 
 # How I tokenmaxx {#tokenmaxx}
@@ -221,19 +221,19 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 :::
 
 
-**1. A flat subscription, not a meter.** The main agent runs through a Claude subscription login: OpenClaw's Claude CLI runtime reuses an existing Claude Code login on the same machine, and usage draws on the plan's limits instead of a per-token bill. Be clear-eyed about the trade. You swap a bill for a ceiling: heavy days run into the plan's usage limits, and Anthropic can change how subscription usage works without an OpenClaw release. The docs recommend an API key for shared production automation, and the provider name alone doesn't prove how you're billed. Check `openclaw models status` to see which auth is live.
+**1. A flat subscription, not a meter.** The main agent runs through a Claude subscription login: OpenClaw's Claude CLI runtime reuses an existing Claude Code login on the same machine, and usage draws on the plan's limits instead of a per-token bill. Be clear-eyed about the trade. You swap a bill for a ceiling: heavy days run into the plan's usage limits, and Anthropic can change how subscription usage works without an OpenClaw release. The docs recommend an API key for shared production automation, and the provider name alone doesn't prove how you're billed. `openclaw models status` shows the configured routes and auth; `/model status` inside a chat shows what that session is really using. For billing itself, the provider's own console is the only proof.
 
-**2. Local models for bulk work.** Anything high-volume, mechanical or private runs on the Mac mini: transcription, recording summaries, embeddings. About 27,000 local calls in September cost nothing per call.
+**2. Local models for bulk work.** Anything high-volume, mechanical or private runs on the Mac mini: transcription, recording summaries, embeddings. About 27,000 local calls in September, with no per-call bill (the Mac mini is on 24/7 anyway, so the real cost is hardware and power you already pay for). Local models only get used if you wire them in: see Media.
 
-**3. Small always-loaded files, so the cache does the work.** The bootstrap files (AGENTS, SOUL, USER, IDENTITY, MEMORY) load on every turn. OpenClaw caps them (by default 20,000 characters per file and 60,000 in total, with `USER.md` held to 4,000) and truncates anything bigger. Keep them as an index and let the agent fetch detail on demand. A small, stable prefix is what gets you 98–100% cache hits. `/context` shows exactly what's injected and whether anything was cut. Don't break the cache mid-session: changing the model or thinking level starts a new cache lineage, so choose both when the session starts and use `/new` for a planned change.
+**3. Small always-loaded files, so the cache does the work.** The bootstrap files (AGENTS, SOUL, USER, IDENTITY, MEMORY) load on every turn. OpenClaw caps them (by default 20,000 characters per file and 60,000 in total, with `USER.md` held to 4,000) and truncates anything bigger. Keep them as an index and let the agent fetch detail on demand. A small, stable prefix is the biggest lever on cache hits: my main agent's `/status` routinely shows a 98–100% hit rate (the cache-read share of prompt tokens; the reply itself isn't counted). Treat that as an observation from my setup, not a promise. `/context` shows exactly what's injected and whether anything was cut. Don't break the cache mid-session: changing the model or thinking level starts a new cache lineage, so choose both when the session starts and use `/new` for a planned change.
 
-**4. The right model per job and per surface.** See Fig 3. Automations can set their own model and thinking level (`--model`, `--thinking`) and a lighter bootstrap (`--light-context`). Surfaces matter too: WhatsApp can't stream, so output length is both the bill and the wait. Short replies there, long work on Discord.
+**4. The right model per job and per surface.** See Fig 3. Automations can set their own model and thinking level (`--model`, `--thinking`), and `--light-context` runs them with an empty bootstrap (see Automations for the catch). Surfaces matter too: WhatsApp can't stream, so output length is both the bill and the wait. Short replies there, long work on Discord (with preview streaming switched on, see Channels).
 
 **5. Fresh sessions plus memory, not endless context.** Long sessions full of tool output are the single biggest cost driver. Save what matters to memory, then `/new`. Use `/compact` when you need to keep going.
 
 **6. Fallbacks.** `openclaw models fallbacks add <model>` so an outage degrades the agent instead of stopping it.
 
-**On an API key instead?** Prompt caching is automatic there (5 minutes by default), and `agents.defaults.params.cacheRetention: "long"` stretches it to an hour; that knob is API-key only. Context pruning (`agents.defaults.contextPruning.mode: "cache-ttl"`, which trims old tool output after the cache window) is already switched on by default for Anthropic API keys and Claude logins alike, so on the Claude login path a small, stable prefix is the lever you actually control. And heartbeats are model turns too: every 30 minutes by default, hourly on a Claude login (`agents.defaults.heartbeat.every`).
+**On an API key instead?** Prompt caching is automatic there (5 minutes by default), and `agents.defaults.params.cacheRetention: "long"` stretches it to an hour; that knob is API-key only. Context pruning (`agents.defaults.contextPruning.mode: "cache-ttl"`) is already switched on by default for Anthropic API keys and Claude logins alike. On a Claude login it trims old tool output locally once the cache window has passed; on a direct API key Anthropic clears old tool results server-side instead. Either way, a small, stable prefix is the lever you actually control. And heartbeats are model turns too: every 30 minutes by default, hourly on a Claude login (`agents.defaults.heartbeat.every`).
 
 ```{=html}
 <div class="fig">
@@ -242,7 +242,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 <div class="tokkey"><span><i style="background:#6f6df0"></i>Read from prompt cache (98–100% on /status)</span><span><i style="background:#ff6b5e"></i>Your new message + fresh tool results</span><span><i style="background:#ff3b30"></i>The reply</span></div>
 <div style="font:700 7.2pt 'SF Mono',Menlo,monospace;letter-spacing:1.4px;color:#5e5ce6;margin-top:.14in">EVERY JOB GOES TO THE CHEAPEST THING THAT DOES IT WELL</div>
 <table class="route">
-<tr><td>Conversation, judgement, decisions</td><td class="m">Claude via subscription login</td><td>thinking high, fast mode off</td></tr>
+<tr><td>Conversation, judgement, decisions</td><td class="m">Claude via subscription login</td><td>thinking high</td></tr>
 <tr><td>Hard builds, reviews, big decisions</td><td class="m">Claude Opus 5.5</td><td>only when it's worth it</td></tr>
 <tr><td>Quick lookups, utility tasks</td><td class="m">Claude Haiku 4.5</td><td>small and cheap</td></tr>
 <tr><td>Every voice note</td><td class="m loc">mlx-whisper large-v3-turbo · local</td><td>free, private</td></tr>
@@ -250,7 +250,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 <tr><td>Memory search</td><td class="m loc">nomic-embed-text, EmbeddingGemma · local</td><td>embeddings never leave the box</td></tr>
 <tr><td>A provider outage</td><td class="m">configured fallback model</td><td>the agent keeps working</td></tr>
 </table>
-<div class="cap"><b>Fig 3</b> · Tokenmaxxing. Bar is illustrative of the reported cache hit rate, not to scale for any one turn.</div>
+<div class="cap"><b>Fig 3</b> · Tokenmaxxing. The bar illustrates the hit rate <code>/status</code> reports, not any one turn. Model tiers are my suggested split, not a rule. Local rows only apply once you wire them in (see Media).</div>
 </div>
 ```
 
@@ -280,16 +280,16 @@ Four things before you start:
 | Terminal comfort | You'll read logs and edit config now and then. |
 
 ```bash
-npx openclaw@latest                                 # fastest path
-curl -fsSL https://openclaw.ai/install.sh | bash    # or the installer (adds Node)
+npx openclaw@latest                                 # just trying it: runs, nothing installed
+curl -fsSL https://openclaw.ai/install.sh | bash    # keeping it: installs the CLI (and Node)
 ```
 
-Onboarding offers **Quick start** (reuses the AI access it finds, checks it with a real reply, saves your config and opens the dashboard) or **Custom setup**. Then keep the gateway running in the background:
+Onboarding offers **Quick start** (reuses the AI access it finds, checks it with a real reply, saves your config and opens the dashboard) or **Custom setup**. Quick start leaves the gateway running in that terminal. To keep it: if you started with `npx`, install the CLI first (the installer above, or see the docs' Install page), press **Ctrl+C** to stop the foreground gateway, then install it as a background service:
 
 ```bash
 openclaw gateway install     # LaunchAgent on macOS, systemd on Linux
 openclaw gateway status      # service status plus a connectivity probe
-openclaw channels status     # are the chat apps actually connected?
+openclaw channels status --probe  # live check that the chat apps really work
 openclaw dashboard           # web control panel
 openclaw doctor              # health checks and quick fixes
 openclaw configure           # change settings later
@@ -297,7 +297,7 @@ openclaw configure           # change settings later
 
 ::: lesson
 - **Reuse a subscription login.** It's the simplest, most predictable way to pay for a personal agent. Per-token billing is fine for experiments, but a busy agent's bill is hard to predict.
-- **"The gateway is running" is not "my agent works".** After any install, update or config change, message it from your phone and get a real reply. `openclaw channels status` tells you more than `gateway status` does.
+- **"The gateway is running" is not "my agent works".** After any install, update or config change, message it from your phone and get a real reply. `openclaw channels status --probe` tells you more than `gateway status` does.
 :::
 
 # Where everything lives {#files}
@@ -322,7 +322,7 @@ Move the workspace with `agents.defaults.workspace`. Put it under git: Ares has 
 
 ::: lesson
 - **Run `git init` inside the workspace folder, never in `~/.openclaw/` itself.** The runtime folder around it holds config, credentials and session history. Keep big generated folders (a Python `.venv`, downloads) out of the repo with a `.gitignore`.
-- **The workspace is the agent.** Back it up like it matters, because it's the only part you can't reinstall.
+- **The workspace is the agent.** Back it up like it matters (`openclaw backup create`), because it's the only part you can't reinstall. A full backup includes credentials, so store the archive like a secret.
 :::
 
 # The Soul Stack {#soul}
@@ -335,13 +335,13 @@ If you only rewrite one thing this month, make it the soul.
 The secret isn't in the skills. It's in the soul. Skills define how to use a tool. The soul defines who the agent is, when it acts, and why.
 :::
 
-These files load into every conversation, so they're the most important words you'll write.
+These files load at the start of every session, so they're the most important words you'll write. One exception worth knowing: `MEMORY.md` loads only in your main private session, never in groups, so group members can't pull your private memory into a shared chat.
 
 - **SOUL.md**: personality, tone and hard boundaries.
 - **AGENTS.md**: the employee handbook. Rules, priorities, workflows, and local environment notes in its `## Tools` section.
 - **USER.md**: you. Preferences, communication style, time zone, written as short dated directives so an old preference gets marked as replaced instead of contradicted.
 - **IDENTITY.md**: name, emoji, vibe. Matters more once you run several agents.
-- **MEMORY.md**: durable facts and decisions (see Memory).
+- **MEMORY.md**: durable facts and decisions, main private session only (see Memory).
 
 ::: two
 ```markdown
@@ -387,7 +387,7 @@ the live page.
 Ares lives in the two apps I already open a hundred times a day. That, more than any feature, is why I actually use it.
 :::
 
-- **WhatsApp.** Link it as a device (WhatsApp → Linked Devices → Link a Device) from onboarding, the dashboard, or `openclaw channels login --channel whatsapp`. Give the agent its own number if you can.
+- **WhatsApp.** Give the agent its own number if you can. Set who may talk to it first (`channels.whatsapp.dmPolicy: "pairing"` plus your own number in `allowFrom`), then link it as a device (WhatsApp → Linked Devices → Link a Device) with `openclaw channels login --channel whatsapp` or from the dashboard. The first DM from a new sender creates an access request: approve it with `openclaw pairing approve whatsapp <code>` (they expire after an hour). Finish with the round trip: message it from your phone and get a reply.
 - **Telegram.** Create a bot with @BotFather, then add the token.
 - **Discord.** Create a bot in the Developer Portal, enable the Message Content intent, invite it to your server.
 - **Slack, iMessage, Signal, Matrix, Teams** and more are under Channels in the docs. `openclaw channels list --all` shows what's installable.
@@ -395,7 +395,7 @@ Ares lives in the two apps I already open a hundred times a day. That, more than
 In groups, the agent answers only when mentioned unless you change that.
 
 ::: lesson
-- **Match the channel to the job.** WhatsApp can't stream: you see nothing until the whole reply is written. Keep WhatsApp replies short. Discord streams and renders tables and code, so long work goes there.
+- **Match the channel to the job.** WhatsApp can't stream: you see nothing until the whole reply is written. Keep WhatsApp replies short. Discord renders tables and code, and can stream a live preview once you set `channels.discord.streaming.mode` (it's off by default), so long work goes there.
 - **Big files go as links.** The WhatsApp cap is configurable (`channels.whatsapp.mediaMaxMb`, default 50), but in practice we see media fail well below that, around 13 MB. We aim for 5 MB and send anything bigger as a Drive link.
 - **Once you have two channels, every send must name its channel.** With one, the default works. With two, an unaddressed send fails.
 - **Anything meant to be copied gets its own message.** An address, a command, a draft: send it alone, no labels inside, so it copies in one tap.
@@ -433,17 +433,20 @@ The cheapest setting is the one that gets it right the first time.
 /fast           fast mode: status, auto, on, off   /compact   summarise a long session
 ```
 
-| Job | Model (September 2026) |
+::: keep
+| Job | Suggested model (September 2026) |
 |-----|-----|
 | Conversation, judgement, most work | Claude through a subscription login, thinking high |
 | Hard reasoning, important decisions, long builds | The top tier, Claude Opus 5.5 |
 | Quick, cheap lookups | The small tier, Claude Haiku 4.5 |
 | High-volume private work | Local models via Ollama and mlx-whisper (see How I tokenmaxx) |
+:::
 
 Set defaults in config: `agents.defaults.thinkingDefault` and `agents.defaults.fastModeDefault`, or per agent under `agents.entries.<id>`. Add fallbacks with `openclaw models fallbacks add <model>`.
 
 ::: lesson
-- **Low effort costs more than it saves.** On low-effort settings, our agent confidently recommended a restaurant based on a 9-month-old listing. For anything with real-world consequences: thinking high. That's now the main agent's default, with fast mode off too (on a Claude subscription login fast mode doesn't change the request anyway, per the docs; on API keys it trades cost for speed).
+- **Low effort costs more than it saves.** On low-effort settings, our agent confidently recommended a restaurant based on a 9-month-old listing. For anything with real-world consequences: thinking high. That's now the main agent's default. On the Claude CLI runtime, OpenClaw passes the thinking level to Claude Code as its `--effort` setting, so it really does change the work.
+- **Fast mode isn't the knob on a subscription.** Our config says fast mode off, but on a Claude login it's a no-op: the docs say OAuth and Claude CLI requests never receive the fast-mode field. It only matters on a direct API key, where it trades money for speed. Don't credit it, or blame it, for anything on the subscription path.
 - **Pick the model and thinking level at the start of a session.** Switching mid-session throws away the prompt cache.
 :::
 
@@ -453,7 +456,7 @@ Set defaults in config: `agents.defaults.thinkingDefault` and `agents.defaults.f
 This is the most important chapter. The agent runs with **your** permissions: it can run commands, read and write your files, drive your browser and message people as you.
 :::
 
-Permission modes control how shell commands get approved (`tools.exec.mode`):
+Permission modes control how **shell commands** get approved (`tools.exec.mode`). They don't cover file tools, the browser or messaging: those are separate settings, so a locked-down week 1 needs more than one line.
 
 ::: keep
 | Mode | What happens |
@@ -466,12 +469,14 @@ Permission modes control how shell commands get approved (`tools.exec.mode`):
 :::
 
 ```bash
-openclaw config set tools.exec.mode deny   # week 1; switch to ask in week 2
-openclaw gateway restart           # applies the new mode
-openclaw exec-policy show          # what's actually in effect after merging
-openclaw security audit            # risky settings; --fix applies safe remediations
-openclaw gateway stop --disable    # KILL SWITCH: stops it, stays stopped after a reboot
-openclaw gateway status            # confirm it's down (stop is scheduled, not instant)
+openclaw config set tools.exec.mode deny         # week 1: no host shell (ask from week 2)
+openclaw config set tools.fs.workspaceOnly true  # file tools stay inside the workspace
+openclaw config set tools.deny '["browser"]' --strict-json  # no browser yet
+openclaw gateway restart                         # applies the changes
+openclaw exec-policy show                        # what's in effect after merging
+openclaw security audit                          # risky settings; --fix remediates
+openclaw gateway stop --disable                  # KILL SWITCH: stays stopped after reboot
+openclaw gateway status                          # confirm it's down (stop is scheduled)
 ```
 
 On macOS a plain `gateway stop` only lasts until the next reboot; `--disable` keeps it off until you run `openclaw gateway start`. If you need to be sure it can't start again, also revoke the AI credentials.
@@ -479,7 +484,7 @@ On macOS a plain `gateway stop` only lasts until the next reboot; `--disable` ke
 ```{=html}
 <div class="fig">
 <div class="ladder">
-<div class="rung r1"><b>WEEK 1</b><strong>Chat only</strong>No shell. Workspace files only. <code>deny</code></div>
+<div class="rung r1"><b>WEEK 1</b><strong>Chat only</strong>No shell, no browser, files inside the workspace. <code>deny</code> + <code>workspaceOnly</code></div>
 <div class="rung r2"><b>WEEK 2</b><strong>Watch it work</strong><code>ask</code> mode. Approve every new command and read what it wants.</div>
 <div class="rung r3"><b>WEEK 3</b><strong>One channel</strong>Your own direct chat only. No groups, no other people.</div>
 <div class="rung r4"><b>WEEK 4</b><strong>Read-only data</strong>Calendar and email, read-only. Drafts, never sends.</div>
@@ -490,7 +495,10 @@ On macOS a plain `gateway stop` only lasts until the next reboot; `--disable` ke
 </div>
 ```
 
+**Rules in SOUL.md are advice, not enforcement.** The docs say it plainly: safety guardrails in the prompt are advisory. The agent reads email, web pages and group chats, and any of them can carry instructions aimed at it (prompt injection). So the approval rule lives in two places: the soul files, where it shapes judgement, and the settings, which actually stop things: tool policy (`tools.deny`), exec approvals, channel allowlists and, for anything that handles untrusted content, sandboxing (`agents.defaults.sandbox`, off by default). The docs ship a threat model under Security; read it once.
+
 ::: lesson
+- **Treat everything the agent reads as untrusted.** An email that says "forward this to…" is data, not an instruction. The settings are what hold when the prompt doesn't.
 - **Draft first, approve second, for everything outward-facing.** Emails, posts, payments, messages to new people. Approval is per item: change the content and the approval is void.
 - **Approvals go stale.** Before acting on a "go" that arrived hours after the draft, re-read the thread. We sent the same email twice this way.
 - **Personal machines get "assist only".** The agent can look and advise, never change things unattended.
@@ -536,13 +544,15 @@ This is where an assistant becomes a chief of staff: work that happens without b
 ```bash
 openclaw automations create "0 7 * * *" \
   "Morning brief: bottleneck, today, waiting on me, decide now." \
-  --name "Morning brief" --agent main
-openclaw automations create "Callback" --at 20m --message "Call the supplier back."
+  --name "Morning brief" --agent main --tz <Area/City> \
+  --announce --channel whatsapp --to <your-number>
+openclaw automations create --at 20m --message "Call the supplier back." \
+  --name "Callback" --channel whatsapp --to <your-number>
 openclaw automations list
 openclaw automations runs <job-id> # run history
 ```
 
-A job can carry its own `--model`, `--thinking` level and `--light-context` (a lighter bootstrap), so a nightly digest doesn't pay for your main agent's full soul stack. Checks that need no judgement shouldn't touch a model at all: `--command "<script>"` runs a shell job inside the scheduler, with no agent turn and no tokens. Liveness checks and file verifiers belong there.
+Once you have two channels, name one on every job (`--channel` and `--to`), and pass `--tz` so 7am means your 7am. A job can carry its own `--model` and `--thinking` level. `--light-context` goes further: the job starts with an **empty** bootstrap, which is cheap but means none of AGENTS.md comes along, including your approval rule. Put any safety rule the job needs into its own prompt, and don't use light context for jobs that can send things. Checks that need no judgement shouldn't touch a model at all: `--command "<script>"` runs a script inside the scheduler, with no agent turn and no tokens. Liveness checks and file verifiers belong there. Know what that means: command jobs are admin-authored and run in the gateway process, outside the agent's permission mode, so `tools.exec.mode deny` doesn't apply to them.
 
 Start with three: a morning brief, an evening wrap-up and an inbox sweep. Ares runs 94 today. Add each one the second time you wish it existed, not the first.
 
@@ -632,6 +642,12 @@ Half of what I send Ares is voice notes and screen recordings. Media is where th
 - **Video and audio:** ffmpeg does almost everything. Check `ffmpeg -buildconf` before relying on filters such as text overlays; not every build includes them.
 - **Large files:** keep them in cloud storage and share links. Google Drive supports HTTP range requests, so ffmpeg can seek into a multi-GB file without downloading it.
 
+**Wire the local models in, or you'll quietly use the cloud.** Installing a model isn't enough; OpenClaw has to be pointed at it.
+
+- **Voice notes.** Audio auto-detection tries configured provider keys *before* local tools, so any audio-capable API key wins. The built-in local options are `whisper-cli`, `sherpa-onnx-offline`, `parakeet-mlx` and Python `whisper`; mlx-whisper isn't one, so ours runs from our own script. Pin a local option under `tools.media.models` or call your own script.
+- **Memory search.** OpenAI embeddings are the default. Set `memory.search.provider` to `"ollama"` (or `"local"`), then confirm with `openclaw memory status --deep`.
+- **Bulk jobs.** Point the job at it: `--model ollama/<model-tag>`. A 35B model wants a high-memory machine.
+
 ::: lesson
 - Whisper sometimes writes Hindi audio in Urdu script. Keep its timings and correct the text.
 - YouTube has a daily upload cap separate from its API quota (`uploadLimitExceeded`). Wait 24 hours.
@@ -649,6 +665,7 @@ It will break. The skill isn't avoiding that, it's knowing which layer broke in 
 | Agent not replying | Gateway stopped or unhealthy | `openclaw gateway status`, then `openclaw doctor` |
 | Gateway fine, chat dead | Channel disconnected | `openclaw channels status --probe`; re-link if needed |
 | Broke it editing config | Invalid config | `openclaw config validate`; restore from a backup (take one before every big change) |
+| Need to roll back everything | Bad update or corrupted state | `openclaw backup restore <archive> --target <new-empty-dir>`, stop the gateway, swap it in, `openclaw doctor`; WhatsApp may need relinking |
 | It "can't" do what it did last week | Missing credential or tool | Check the credential index and `openclaw skills check` before accepting "can't" |
 | Memory database refuses connections | Every session holding its own pool | Raise the connection limit, close stale sessions |
 | Same alert every 15 minutes | No alert gate | Add dedupe and a cooldown |
@@ -672,15 +689,12 @@ It will break. The skill isn't avoiding that, it's knowing which layer broke in 
 ```bash
 # Gateway and health
 openclaw gateway status
-openclaw gateway stop --disable  # kill switch
+openclaw gateway stop --disable
 openclaw status --deep   # probe channels
 openclaw channels status
 openclaw doctor --fix
 openclaw logs --follow
 openclaw update
-# In chat
-/status  /context  /model  /think
-/fast  /new  /compact  /help
 ```
 
 ```bash
@@ -694,6 +708,8 @@ openclaw automations list
 openclaw tasks list
 openclaw skills list
 openclaw models status
+# In chat
+/status /context /model /think /new
 ```
 :::
 
