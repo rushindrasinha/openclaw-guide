@@ -17,8 +17,8 @@
 
 <p align="center">
   <a href="./start-here/ai-chief-of-staff-starter.pdf"><b>Start here (3 pages)</b></a> •
-  <a href="./openclaw-bible.pdf">OpenClaw Bible (21 pages)</a> •
-  <a href="./openclaw-full-stack.pdf">Full Stack (7 pages)</a> •
+  <a href="./openclaw-bible.pdf">OpenClaw Bible (16 pages)</a> •
+  <a href="./openclaw-full-stack.pdf">Full Stack (6 pages)</a> •
   <a href="https://docs.openclaw.ai">OpenClaw Docs</a>
 </p>
 
@@ -29,7 +29,8 @@
 | If you… | Read |
 |---|---|
 | saw my post and want the idea in 5 minutes, no code | **[Start here: How I'd build an AI chief of staff from scratch](./start-here/ai-chief-of-staff-starter.pdf)** |
-| are ready to set up OpenClaw properly | **[The OpenClaw Bible](./openclaw-bible.pdf)** |
+| want proof it works, and what it really costs | **[The OpenClaw Bible](./openclaw-bible.pdf)**, Part I: Receipts and How I tokenmaxx |
+| are ready to set up OpenClaw properly | **[The OpenClaw Bible](./openclaw-bible.pdf)**, Parts II and III |
 | want the exact tools, models and services behind my setup | **[OpenClaw Full Stack](./openclaw-full-stack.pdf)** |
 
 ## What's inside
@@ -37,20 +38,23 @@
 ### 1) Start here: AI chief of staff starter (3 pages)
 The five ideas that turned a chatbot into a chief of staff, a first-week plan, what not to automate yet, and the mistakes I made. No code.
 
-### 2) The OpenClaw Bible (21 pages)
-The field manual. Every chapter has **the setup** (how OpenClaw works today) and **the lesson** (what running it for real taught me):
+### 2) The OpenClaw Bible (16 pages)
+The field manual, in three parts. Every chapter has **the setup** (how OpenClaw works today, commands checked against 2026.9.x) and **the lessons** (what running it for real taught me):
+- **Receipts:** what the system actually does day to day, the numbers (94 automations, 18 agents, ~440 self-written scripts, a ~6,700-page knowledge graph), four real formats, and a table of everything that went wrong and what changed
+- **How I tokenmaxx:** why it isn't a token destroyer. Subscription login instead of per-token billing, local models for bulk work, small bootstrap files so 98–100% of each turn comes from prompt cache, the right model per job, fresh sessions, fallbacks
+- an architecture diagram, from your phone to the models
 - installing and onboarding (reusing your Claude login)
 - the workspace and the **Soul Stack** (`SOUL.md`, `AGENTS.md`, `USER.md`, `MEMORY.md`)
 - channels, and what each one is good for
 - secrets without ever pasting a key into chat
 - models, thinking levels and cost
-- **security**: permission modes, kill switches, and the lock-down-then-loosen method
+- **security**: permission modes, kill switches, and the 5-week trust ladder
 - skills, automations, heartbeats and memory
 - multiple agents and running a fleet of machines
 - what breaks and how to fix it
 
-### 3) OpenClaw Full Stack (7 pages)
-A snapshot of the live toolchain: core install, Claude plus local models (Ollama, Whisper), CLI tools, Node and Python packages, memory (including GBrain), the skills that earn their keep, background health services, and a fresh-install order.
+### 3) OpenClaw Full Stack (6 pages)
+A snapshot of the live toolchain: core install, Claude plus local models (Ollama, mlx-whisper), CLI tools, Node and Python packages, memory (including GBrain), the skills that earn their keep, the background health system, the seven-machine fleet, and a fresh-install order.
 
 ## The 5 ideas that matter most
 
@@ -65,13 +69,13 @@ A snapshot of the live toolchain: core install, Claude plus local models (Ollama
 ```bash
 npx openclaw@latest            # or: curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw gateway install       # keep it running in the background
-openclaw gateway status
+openclaw channels status       # are your chat apps actually connected?
 openclaw dashboard
 ```
 
 Then:
 1. write your `SOUL.md` and `USER.md`
-2. set shell commands to `ask` mode and run `openclaw security audit`
+2. set shell commands to `ask` mode (`openclaw config set tools.exec.mode ask`) and run `openclaw security audit`
 3. connect one channel (your own chat)
 4. turn on one automation: a morning brief
 5. check it end to end: message it from your phone and get a real answer
@@ -85,7 +89,9 @@ Then:
 
 ## Building the PDFs
 
-The PDFs are generated from the Markdown in [`guides/`](./guides) and the HTML in [`start-here/`](./start-here). Edit those, then run `./build.sh` (needs `pandoc` and Google Chrome).
+The PDFs are generated from the Markdown in [`guides/`](./guides) and the HTML in [`start-here/`](./start-here). Edit those, then run `./build.sh`.
+
+Needs pandoc 3.8+, Google Chrome, python3 and poppler (`brew install pandoc poppler` on a Mac). The build renders each guide twice so the contents page gets real page numbers, refreshes the cover images in `docs/`, and runs `tools/check_pages.py`, which flags any page less than ~70% full. Design system: [`guides/assets/guide.css`](./guides/assets/guide.css).
 
 ## Changelog
 

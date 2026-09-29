@@ -1,13 +1,32 @@
 #!/usr/bin/env bash
-# Rebuild the PDFs from source. Needs pandoc and Google Chrome.
+# Rebuild every PDF from source.
+# Needs: pandoc 3.8+, Google Chrome, python3, poppler (pdftotext/pdfinfo/pdftoppm for
+# contents page numbers, page checks and README cover images).
+#   macOS: brew install pandoc poppler
+# Override the browser with CHROME=/path/to/chrome ./build.sh
 set -euo pipefail
 cd "$(dirname "$0")"
-CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
-TMP="$(mktemp -d)"
-render() { "$CHROME" --headless=new --disable-gpu --no-pdf-header-footer --print-to-pdf="$2" "file://$1" 2>/dev/null; }
-pandoc guides/openclaw-bible.md -s --css guides/assets/guide.css --metadata pagetitle="OpenClaw Bible" --embed-resources -o "$TMP/bible.html"
-pandoc guides/openclaw-full-stack.md -s --css guides/assets/guide-compact.css --metadata pagetitle="OpenClaw Full Stack" --embed-resources -o "$TMP/fullstack.html"
-render "$TMP/bible.html" openclaw-bible.pdf
-render "$TMP/fullstack.html" openclaw-full-stack.pdf
-render "$PWD/start-here/ai-chief-of-staff-starter.html" start-here/ai-chief-of-staff-starter.pdf
-echo "Built: openclaw-bible.pdf, openclaw-full-stack.pdf, start-here/ai-chief-of-staff-starter.pdf"
+export CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+
+python3 tools/build_guide.py guides/openclaw-bible.md openclaw-bible.pdf --title "The OpenClaw Bible"
+python3 tools/build_guide.py guides/openclaw-full-stack.md openclaw-full-stack.pdf --title "OpenClaw Full Stack"
+"$CHROME" --headless=new --disable-gpu --no-pdf-header-footer \
+  --print-to-pdf=start-here/ai-chief-of-staff-starter.pdf \
+  "file://$PWD/start-here/ai-chief-of-staff-starter.html" >/dev/null 2>&1
+echo "built start-here/ai-chief-of-staff-starter.pdf"
+
+# README cover thumbnails
+if command -v pdftoppm >/dev/null; then
+  pdftoppm -png -r 60 -f 1 -l 1 -singlefile openclaw-bible.pdf docs/openclaw-bible-cover
+  pdftoppm -png -r 60 -f 1 -l 1 -singlefile openclaw-full-stack.pdf docs/openclaw-full-stack-cover
+  pdftoppm -png -r 60 -f 1 -l 1 -singlefile start-here/ai-chief-of-staff-starter.pdf docs/starter-cover
+fi
+
+# Layout check: flags any body page under ~70% full (cover and last page exempt)
+if command -v pdftoppm >/dev/null; then
+  for f in openclaw-bible.pdf openclaw-full-stack.pdf; do
+    last=$(pdfinfo "$f" | awk '/^Pages:/{print $2}')
+    echo "--- $f ($last pages)"
+    python3 tools/check_pages.py "$f" --skip "1,$last" || echo "WARNING: under-filled page(s) in $f"
+  done
+fi
