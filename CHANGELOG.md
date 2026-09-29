@@ -1,12 +1,13 @@
 # Changelog
 
 ## September 2026, v2
-- **Rebuilt the OpenClaw Bible** (16 pages) around proof: new **Receipts** chapter (live numbers, a normal day, four real formats, and a failure table of what broke and what changed) and new **How I tokenmaxx** chapter (subscription login, local models, prompt cache, model routing, fresh sessions, fallbacks).
+- **Rebuilt the OpenClaw Bible** (17 pages) around proof: new **Receipts** chapter (live numbers, a normal day, four real formats, and a failure table of what broke and what changed) and new **How I tokenmaxx** chapter (subscription login, local models, prompt cache, model routing, fresh sessions, fallbacks).
 - **New design system**: light, readable body pages with dark cover and part dividers; a real contents page with page numbers; chapters flow instead of one per page; every chapter has an opener, the setup, and a highlighted lessons box.
 - **New figures**: architecture diagram (phone to models), stats grid, trust ladder for the 5-week lock-down method, tokenmaxx diagram, approval and declared-artifact flows.
 - Every OpenClaw command and config key re-checked against 2026.9.x `--help` and the bundled docs. Corrected the skills count (about 50 bundled; ~327 available to the agent, about 290 ready).
 - **Full Stack** (6 pages) and the **starter guide** moved to the same design and the same numbers.
 - `./build.sh` now builds everything, fills contents page numbers, refreshes README covers and checks page fill.
+- Review pass: honest subscription trade-offs (usage limits, terms can change, API key for shared production automation), documented cache knobs for API-key users, heartbeat cost, `--command` automations that use no model, a multi-agent `agents add --bind` example, `gateway restart` after changing the exec mode, and a corrected sample date.
 
 
 ## September 2026

@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="./start-here/ai-chief-of-staff-starter.pdf"><b>Start here (3 pages)</b></a> •
-  <a href="./openclaw-bible.pdf">OpenClaw Bible (16 pages)</a> •
+  <a href="./openclaw-bible.pdf">OpenClaw Bible (17 pages)</a> •
   <a href="./openclaw-full-stack.pdf">Full Stack (6 pages)</a> •
   <a href="https://docs.openclaw.ai">OpenClaw Docs</a>
 </p>
@@ -29,7 +29,7 @@
 | If you… | Read |
 |---|---|
 | saw my post and want the idea in 5 minutes, no code | **[Start here: How I'd build an AI chief of staff from scratch](./start-here/ai-chief-of-staff-starter.pdf)** |
-| want proof it works, and what it really costs | **[The OpenClaw Bible](./openclaw-bible.pdf)**, Part I: Receipts and How I tokenmaxx |
+| want proof it works, and why it doesn't burn tokens | **[The OpenClaw Bible](./openclaw-bible.pdf)**, Part I: Receipts and How I tokenmaxx |
 | are ready to set up OpenClaw properly | **[The OpenClaw Bible](./openclaw-bible.pdf)**, Parts II and III |
 | want the exact tools, models and services behind my setup | **[OpenClaw Full Stack](./openclaw-full-stack.pdf)** |
 
@@ -38,7 +38,7 @@
 ### 1) Start here: AI chief of staff starter (3 pages)
 The five ideas that turned a chatbot into a chief of staff, a first-week plan, what not to automate yet, and the mistakes I made. No code.
 
-### 2) The OpenClaw Bible (16 pages)
+### 2) The OpenClaw Bible (17 pages)
 The field manual, in three parts. Every chapter has **the setup** (how OpenClaw works today, commands checked against 2026.9.x) and **the lessons** (what running it for real taught me):
 - **Receipts:** what the system actually does day to day, the numbers (94 automations, 18 agents, ~440 self-written scripts, a ~6,700-page knowledge graph), four real formats, and a table of everything that went wrong and what changed
 - **How I tokenmaxx:** why it isn't a token destroyer. Subscription login instead of per-token billing, local models for bulk work, small bootstrap files so 98–100% of each turn comes from prompt cache, the right model per job, fresh sessions, fallbacks
@@ -75,7 +75,7 @@ openclaw dashboard
 
 Then:
 1. write your `SOUL.md` and `USER.md`
-2. set shell commands to `ask` mode (`openclaw config set tools.exec.mode ask`) and run `openclaw security audit`
+2. set shell commands to `ask` mode (`openclaw config set tools.exec.mode ask`, then `openclaw gateway restart`) and run `openclaw security audit`
 3. connect one channel (your own chat)
 4. turn on one automation: a morning brief
 5. check it end to end: message it from your phone and get a real answer

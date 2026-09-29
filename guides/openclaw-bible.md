@@ -139,7 +139,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 <div class="stat"><b>~327</b><span>skills available to the agent, about 290 of them ready</span></div>
 <div class="stat"><b>823</b><span>commits to its own workspace repo</span></div>
 <div class="stat"><b>7</b><span>machines in the fleet, one admin Mac mini</span></div>
-<div class="stat"><b>~27,000</b><span>local model calls in September, zero API cost</span></div>
+<div class="stat"><b>~27,000</b><span>local model calls in September, no per-call bill</span></div>
 <div class="stat hot"><b><em>98–100%</em></b><span>of each main-agent turn served from prompt cache</span></div>
 <div class="stat"><b>15 <small>min</small></b><span>between checks that every scheduled job really produced its output</span></div>
 </div>
@@ -165,8 +165,8 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 <div class="two">
 <div class="fig" style="margin:0">
 <span class="tag">Representative sample</span>
-<div class="msg"><span class="h">ARES BRIEF · Tue 30 Sep · 08:00</span><br><br>
-<span class="k">BOTTLENECK</span><br>Contract draft waiting on your review since Tuesday. Two follow-ups are blocked behind it.<br><br>
+<div class="msg"><span class="h">ARES BRIEF · Wed 30 Sep · 08:00</span><br><br>
+<span class="k">BOTTLENECK</span><br>Contract draft waiting on your review since Monday. Two follow-ups are blocked behind it.<br><br>
 <span class="k">TODAY</span><br>11:00 product call, agenda drafted.<br>15:00 design review, 3 open comments summarised.<br><br>
 <span class="k">WAITING ON YOU</span><br>Newsletter draft, sent for approval 18:40 yesterday.<br><br>
 <span class="k">DECIDE NOW</span><br>Old staging server idle 41 days. Keep or shut down?</div>
@@ -221,7 +221,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 :::
 
 
-**1. A flat subscription, not a meter.** The main agent runs through a Claude subscription login: OpenClaw's Claude CLI runtime reuses an existing Claude Code login on the same machine, and usage draws on the plan's limits instead of a per-token bill. The docs are careful here and so should you be: the provider name alone doesn't prove how you're billed. Check with `openclaw models status` and `openclaw status --usage`.
+**1. A flat subscription, not a meter.** The main agent runs through a Claude subscription login: OpenClaw's Claude CLI runtime reuses an existing Claude Code login on the same machine, and usage draws on the plan's limits instead of a per-token bill. Be clear-eyed about the trade. You swap a bill for a ceiling: heavy days run into the plan's usage limits, and Anthropic can change how subscription usage works without an OpenClaw release. The docs recommend an API key for shared production automation, and the provider name alone doesn't prove how you're billed. Check `openclaw models status` to see which auth is live.
 
 **2. Local models for bulk work.** Anything high-volume, mechanical or private runs on the Mac mini: transcription, recording summaries, embeddings. About 27,000 local calls in September cost nothing per call.
 
@@ -232,6 +232,8 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 **5. Fresh sessions plus memory, not endless context.** Long sessions full of tool output are the single biggest cost driver. Save what matters to memory, then `/new`. Use `/compact` when you need to keep going.
 
 **6. Fallbacks.** `openclaw models fallbacks add <model>` so an outage degrades the agent instead of stopping it.
+
+**On an API key instead?** Two documented knobs do what the subscription does for me: `agents.defaults.params.cacheRetention: "long"` and `agents.defaults.contextPruning.mode: "cache-ttl"` (prunes old tool output after the cache window). Neither applies on the Claude CLI path, where a stable prefix is the only lever. And heartbeats are model turns too: every 30 minutes by default, hourly on a Claude login (`agents.defaults.heartbeat.every`).
 
 ```{=html}
 <div class="fig">
@@ -267,6 +269,8 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 ::: opener
 Setup takes an afternoon. Making it good takes months. Both are fine, as long as you know which one you're doing.
 :::
+
+Four things before you start:
 
 | You need | Details |
 |--|--------|
@@ -380,7 +384,7 @@ the live page.
 # Channels {#channels}
 
 ::: opener
-Ares lives in the two apps I already open a hundred times a day. That, more than any feature, is why I actually use him.
+Ares lives in the two apps I already open a hundred times a day. That, more than any feature, is why I actually use it.
 :::
 
 - **WhatsApp.** Link it as a device (WhatsApp → Linked Devices → Link a Device) from onboarding, the dashboard, or `openclaw channels login --channel whatsapp`. Give the agent its own number if you can.
@@ -425,7 +429,7 @@ The cheapest setting is the one that gets it right the first time.
 
 ```text
 /model          show or change the model          /status    model, usage, cache, session info
-/think <level>  thinking depth (off ... max)       /new       fresh session
+/think <level>  thinking depth (off ... ultra)     /new       fresh session
 /fast           fast mode: status, auto, on, off   /compact   summarise a long session
 ```
 
@@ -461,6 +465,7 @@ Permission modes control how shell commands get approved (`tools.exec.mode`):
 
 ```bash
 openclaw config set tools.exec.mode ask
+openclaw gateway restart           # applies the new mode
 openclaw exec-policy show          # what's actually in effect after merging
 openclaw security audit            # risky settings; --fix applies safe remediations
 openclaw gateway stop              # KILL SWITCH: stops everything, now
@@ -530,15 +535,18 @@ This is where an assistant becomes a chief of staff: work that happens without b
 openclaw automations create "0 7 * * *" \
   "Morning brief: bottleneck, today, waiting on me, decide now." \
   --name "Morning brief" --agent main
+openclaw automations create "Callback" --at 20m --message "Call the supplier back."
 openclaw automations list
 openclaw automations runs <job-id> # run history
 ```
+
+A job can carry its own `--model`, `--thinking` level and `--light-context` (a lighter bootstrap), so a nightly digest doesn't pay for your main agent's full soul stack. Checks that need no judgement shouldn't touch a model at all: `--command "<script>"` runs a shell job inside the scheduler, with no agent turn and no tokens. Liveness checks and file verifiers belong there.
 
 Start with three: a morning brief, an evening wrap-up and an inbox sweep. Ares runs 94 today. Add each one the second time you wish it existed, not the first.
 
 ::: lesson
 - **Every alert needs a gate.** A health check that fires on every run gets ignored within a week. Alerts repeat only when something gets worse or after a real cooldown.
-- **"Finished" isn't proof.** A job is done when its output exists: the file, the sent message, the live page. Declare what each job produces and verify it (Receipt D).
+- **"Finished" isn't proof.** A job is done when its output exists: the file, the sent message, the live page. Declare what each job produces and verify it (Receipt D). The verifier is a small script of my own, not a built-in: a list of job names, expected files and maximum ages, checked on a schedule.
 - **Mark test alerts as tests.** An alert that reads like an emergency should only ever mean one.
 :::
 
@@ -572,7 +580,14 @@ The agent searches older memory on demand (`openclaw memory search` does the sam
 One agent doing everything turns into one agent doing everything badly. The system now runs 18 specialist agents.
 :::
 
-One gateway can run several isolated agents, each with its own workspace, memory and login (`openclaw agents add <name>`). **Bindings** route a channel account, a group or a Discord server to a specific agent (`openclaw agents bindings` lists them). Agents coordinate by messaging each other and by spawning **subagents** for focused jobs, which report back when done.
+One gateway can run several isolated agents, each with its own workspace, memory and login.
+
+```bash
+openclaw agents add work --workspace ~/.openclaw/workspace-work --bind telegram:*
+openclaw agents bindings           # which channel, group or server goes to which agent
+```
+
+ **Bindings** route a channel account, a group or a Discord server to a specific agent. Agents coordinate by messaging each other and by spawning **subagents** for focused jobs, which report back when done.
 
 ::: lesson
 - **Give each agent a clear lane** and write the handoffs into each SOUL.md ("content work goes to Sam").
@@ -593,7 +608,7 @@ Once one machine works, you'll want more. Seven later, here's what I'd tell myse
 | iMac | A family-business agent |
 | MacBook Pro | Compute and coding |
 | Cloud server | A product backend |
-| Windows gaming PC | Games and streaming; the agent can drive it for game work |
+| Windows gaming PC | A gaming machine on the same private network |
 | Personal laptop | Assist-only: the agent looks and advises, never changes things |
 
 - Put every machine on a private network (we use **Tailscale**) and reach them over SSH from one admin machine. No ports open to the internet.
@@ -607,7 +622,11 @@ Once one machine works, you'll want more. Seven later, here's what I'd tell myse
 
 # Media and large files {#media}
 
-- **Transcription:** Whisper runs locally for free. On Apple silicon, mlx-whisper with `large-v3-turbo` is fast and accurate.
+::: opener
+Half of what I send Ares is voice notes and screen recordings. Media is where the rough edges live.
+:::
+
+- **Transcription:** Whisper runs locally, with no per-call cost. On Apple silicon, mlx-whisper with `large-v3-turbo` is fast and accurate.
 - **Video and audio:** ffmpeg does almost everything. Check `ffmpeg -buildconf` before relying on filters such as text overlays; not every build includes them.
 - **Large files:** keep them in cloud storage and share links. Google Drive supports HTTP range requests, so ffmpeg can seek into a multi-GB file without downloading it.
 
@@ -618,6 +637,10 @@ Once one machine works, you'll want more. Seven later, here's what I'd tell myse
 :::
 
 # When things break {#break}
+
+::: opener
+It will break. The skill isn't avoiding that, it's knowing which layer broke in under a minute.
+:::
 
 | Symptom | Likely cause | Fix |
 |-----|----|------|
@@ -635,7 +658,7 @@ Once one machine works, you'll want more. Seven later, here's what I'd tell myse
 1. **Accuracy over speed.** A fast wrong answer costs more than a slow right one.
 2. **Say how sure you are**, especially before sending someone somewhere or spending their money.
 3. **Scope first, execute second.** "Here's what I'll do. Proceed?" for anything heavy.
-4. **Give context, not just commands.** "Make a reel" gets a reel. "90-second comeback reel from map 3, silence trimmed, hero's-journey arc" gets the reel you wanted.
+4. **Give context, not just commands.** "Make a video" gets a video. "90-second vertical cut of the product demo, silences trimmed, problem first, fix second, ending on the result" gets the video you wanted.
 5. **Proof, not claims.** Done means the output exists and you've seen it.
 6. **Memory is everything.** If it wasn't written down, it didn't happen.
 7. **Consider the human's real constraints.** Don't tell someone without a local SIM to call a restaurant.

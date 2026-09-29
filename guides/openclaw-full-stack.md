@@ -85,7 +85,7 @@ openclaw models status           # what's configured, and which auth is live
 
 ::: lesson
 - **Local models are free per call and keep private data on the machine**, which is exactly why they sprawl. We once found about 150 GB of models nothing had touched in weeks. Pull what you use.
-- **Check how you're billed, don't assume.** A provider name doesn't prove subscription versus per-token billing. `openclaw models status` and `openclaw status --usage` do.
+- **Check how you're billed, don't assume.** A provider name doesn't prove subscription versus per-token billing; `openclaw models status` shows which auth is actually live. A subscription swaps a bill for usage limits, and the provider can change those terms. For shared production automation the docs recommend an API key.
 :::
 
 # Command-line tools {#cli}
@@ -201,7 +201,7 @@ The health system is the part nobody shows. It's also why I trust the rest.
 | iMac | A family-business agent |
 | MacBook Pro | Compute and coding |
 | Cloud server | A product backend |
-| Windows gaming PC | Games and streaming; the agent can drive it for game work |
+| Windows gaming PC | A gaming machine on the same private network |
 | Personal laptop | Assist-only: the agent looks and advises, never changes things |
 
 Everything connects over Tailscale and SSH from the admin Mac mini. No ports open to the internet.
@@ -209,14 +209,13 @@ Everything connects over Tailscale and SSH from the admin Mac mini. No ports ope
 # Fresh install, in order {#order}
 
 1. Install OpenClaw and finish onboarding (Quick start reuses your Claude login).
-2. `openclaw gateway install`, then message the agent from your phone and get a reply.
+2. `openclaw gateway install`, connect one channel (your own WhatsApp or Telegram chat), then message the agent from your phone and get a reply.
 3. Write `SOUL.md`, `USER.md` and the first rules in `AGENTS.md`. **This is the most important step.**
-4. `openclaw config set tools.exec.mode ask`, then `openclaw security audit`.
-5. Connect one channel: your own WhatsApp or Telegram chat.
-6. Add Google (`gog`) read-only: calendar first, then email.
-7. Turn on a morning brief automation (`openclaw automations create`).
-8. Put the workspace under git and take a backup (`openclaw backup create`).
-9. Only now add local models, more channels, more skills and more machines, one at a time.
+4. `openclaw config set tools.exec.mode ask`, `openclaw gateway restart`, then `openclaw security audit`.
+5. Add Google (`gog`) read-only: calendar first, then email.
+6. Turn on a morning brief automation (`openclaw automations create`).
+7. Put the workspace under git and take a backup (`openclaw backup create`).
+8. Only now add local models, more channels, more skills and more machines, one at a time.
 
 ```{=html}
 <div class="end">
