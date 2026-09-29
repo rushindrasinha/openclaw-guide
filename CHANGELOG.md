@@ -8,6 +8,7 @@
 - **Full Stack** (6 pages) and the **starter guide** moved to the same design and the same numbers.
 - `./build.sh` now builds everything, fills contents page numbers, refreshes README covers and checks page fill.
 - Review pass: honest subscription trade-offs (usage limits, terms can change, API key for shared production automation), documented cache knobs for API-key users, heartbeat cost, `--command` automations that use no model, a multi-agent `agents add --bind` example, `gateway restart` after changing the exec mode, and a corrected sample date.
+- Final pass: kill switch is now `gateway stop --disable` (a plain stop comes back after a reboot on macOS), week 1 starts in `deny` mode to match the trust ladder, zsh-safe `--bind 'telegram:*'`, a Python venv outside the git-tracked workspace with working `uv pip install --python` lines, accurate notes on fast mode and context pruning for Claude logins, no unverified per-job model claims, cleaner page breaks, and clickable links in the starter.
 
 
 ## September 2026

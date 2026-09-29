@@ -20,9 +20,12 @@ if command -v pdftoppm >/dev/null; then
   pdftoppm -png -r 60 -f 1 -l 1 -singlefile openclaw-bible.pdf docs/openclaw-bible-cover
   pdftoppm -png -r 60 -f 1 -l 1 -singlefile openclaw-full-stack.pdf docs/openclaw-full-stack-cover
   pdftoppm -png -r 60 -f 1 -l 1 -singlefile start-here/ai-chief-of-staff-starter.pdf docs/starter-cover
+else
+  echo "WARNING: pdftoppm (poppler) not found: README covers and page-fill check skipped"
 fi
 
-# Layout check: flags any body page under ~70% full (cover and last page exempt)
+# Layout check: flags any body page under ~70% full (cover and last page exempt).
+# It only warns: a green build does not mean the layout passed, read the output.
 if command -v pdftoppm >/dev/null; then
   for f in openclaw-bible.pdf openclaw-full-stack.pdf; do
     last=$(pdfinfo "$f" | awk '/^Pages:/{print $2}')

@@ -174,3 +174,8 @@ thead{display:table-header-group}
 .howto{background:#fff;border:1px solid var(--line);border-radius:8px;padding:.1in .14in;font-size:9pt;margin-top:.12in}
 .howto p{margin:0 0 .04in}
 h1 .mk{font-size:1px;line-height:0;color:transparent;letter-spacing:0}
+
+/* final pass: inline code never wraps mid-token (copy-paste safety); keep marked tables whole; keep chapter heading + opener with the next block */
+:not(pre)>code{white-space:nowrap}
+.keep table{break-inside:avoid}
+h1+.opener{break-after:avoid}

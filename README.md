@@ -75,7 +75,7 @@ openclaw dashboard
 
 Then:
 1. write your `SOUL.md` and `USER.md`
-2. set shell commands to `ask` mode (`openclaw config set tools.exec.mode ask`, then `openclaw gateway restart`) and run `openclaw security audit`
+2. lock shell commands down for week 1 (`openclaw config set tools.exec.mode deny`, then `openclaw gateway restart`; move to `ask` in week 2) and run `openclaw security audit`
 3. connect one channel (your own chat)
 4. turn on one automation: a morning brief
 5. check it end to end: message it from your phone and get a real answer
@@ -91,7 +91,7 @@ Then:
 
 The PDFs are generated from the Markdown in [`guides/`](./guides) and the HTML in [`start-here/`](./start-here). Edit those, then run `./build.sh`.
 
-Needs pandoc 3.8+, Google Chrome, python3 and poppler (`brew install pandoc poppler` on a Mac). The build renders each guide twice so the contents page gets real page numbers, refreshes the cover images in `docs/`, and runs `tools/check_pages.py`, which flags any page less than ~70% full. Design system: [`guides/assets/guide.css`](./guides/assets/guide.css).
+Needs pandoc 3.8+, Google Chrome, python3 and poppler (`brew install pandoc poppler` on a Mac). The build renders each guide twice so the contents page gets real page numbers, refreshes the cover images in `docs/`, and runs `tools/check_pages.py`, which flags any page less than ~70% full. That check only warns, so read its output: a successful build doesn't mean the layout passed. Design system: [`guides/assets/guide.css`](./guides/assets/guide.css).
 
 ## Changelog
 

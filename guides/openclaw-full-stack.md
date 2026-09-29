@@ -70,16 +70,17 @@ One subscription for judgement, local models for volume. That split is most of w
 
 | Role | What we run |
 |---|------|
-| Main reasoning | Claude through a subscription login (Sonnet 5 daily, Opus 5.5 for hard problems), thinking high, fast mode off |
+| Main reasoning | Claude via subscription login, thinking high, fast mode off; Opus 5.5 for hard problems |
 | Fallbacks | A second model via `openclaw models fallbacks add <model>`, so an outage doesn't stop the agent |
 | Local bulk work | **Ollama** with Qwen 3.5 35B: summarising and extracting from meeting recordings (~27,000 calls in September) |
-| Transcription | **mlx-whisper** with `large-v3-turbo` on Apple silicon: every voice note and recording |
+| Transcription | **mlx-whisper** `large-v3-turbo` on Apple silicon: every voice note |
 | Memory search | Small local embedding models: nomic-embed-text, EmbeddingGemma |
 
 ```bash
 brew install ollama              # third-party (Homebrew)
-ollama pull <model-tag>          # third-party: pick the tag from the Ollama library; 35B needs a high-RAM Mac
-pip install mlx-whisper          # third-party (PyPI), Apple silicon only
+ollama pull <model-tag>          # third-party: tag from the Ollama library (35B: big-RAM Mac)
+# third-party (PyPI), Apple silicon; venv: see Python
+uv pip install --python ~/.openclaw/venv/bin/python mlx-whisper
 openclaw models status           # what's configured, and which auth is live
 ```
 
@@ -94,6 +95,8 @@ openclaw models status           # what's configured, and which auth is live
 Boring, dependable tools. The agent leans on these more than on anything clever.
 :::
 
+Install them with one line: `brew install ffmpeg pandoc uv himalaya ollama` (third-party, Homebrew; `gog` comes via its skill).
+
 | Tool | Job |
 |-|-------|
 | `ffmpeg` | Video and audio processing. Check `ffmpeg -buildconf` before relying on filters like text overlays. |
@@ -102,10 +105,6 @@ Boring, dependable tools. The agent leans on these more than on anything clever.
 | `himalaya` | Email over IMAP/SMTP (pairs with the bundled `himalaya` skill) |
 | `gog` | Google Workspace: Gmail, Calendar, Drive, Sheets, Docs (the bundled `gog` skill sets it up) |
 | `ollama` | Local models |
-
-```bash
-brew install ffmpeg pandoc uv himalaya ollama   # third-party (Homebrew)
-```
 
 # Node global packages {#node}
 
@@ -127,13 +126,14 @@ What's installed globally on the main machine, grouped by job:
 Keep one virtual environment for the agent's scripts and always call its Python, never the system one. The agent's own scripts (about 440 of them) should all call it.
 
 ```bash
-uv venv ~/.openclaw/workspace/.venv          # third-party (uv)
-uv pip install anthropic google-api-python-client google-auth-oauthlib \
+uv venv ~/.openclaw/venv          # third-party (uv); outside the git-tracked workspace
+uv pip install --python ~/.openclaw/venv/bin/python \
+  anthropic google-api-python-client google-auth-oauthlib \
   requests beautifulsoup4 pillow pypdf python-pptx playwright
 ```
 
 ::: lesson
-- **One venv, named in the rules file.** A script that silently picks up the system Python is the classic "it worked yesterday" bug.
+- **One venv, named in the rules file.** A script that silently picks up the system Python is the classic "it worked yesterday" bug. Keep the venv outside the workspace: it's hundreds of MB that don't belong in the agent's git history.
 :::
 
 # Memory {#memory}
@@ -211,7 +211,7 @@ Everything connects over Tailscale and SSH from the admin Mac mini. No ports ope
 1. Install OpenClaw and finish onboarding (Quick start reuses your Claude login).
 2. `openclaw gateway install`, connect one channel (your own WhatsApp or Telegram chat), then message the agent from your phone and get a reply.
 3. Write `SOUL.md`, `USER.md` and the first rules in `AGENTS.md`. **This is the most important step.**
-4. `openclaw config set tools.exec.mode ask`, `openclaw gateway restart`, then `openclaw security audit`.
+4. `openclaw config set tools.exec.mode deny` for week 1 (switch to `ask` in week 2, per the Bible's trust ladder), `openclaw gateway restart`, then `openclaw security audit`.
 5. Add Google (`gog`) read-only: calendar first, then email.
 6. Turn on a morning brief automation (`openclaw automations create`).
 7. Put the workspace under git and take a backup (`openclaw backup create`).

@@ -198,7 +198,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 
 | What went wrong | What we changed |
 |---|---|
-| On low-effort settings it confidently recommended a restaurant from a 9-month-old listing | Thinking high and fast mode off for the main agent |
+| On low-effort settings it confidently recommended a restaurant from a 9-month-old listing | Thinking high for the main agent, fast mode off |
 | An approved email went out hours later, after I had already sent it myself | Stale approvals trigger a re-read of the thread before acting |
 | Health checks fired the same alert every run until I ignored all of them | Every alert goes through a gate: dedupe, cooldown, repeat only on escalation |
 | Jobs reported "done" with no output on disk | Declared artifacts plus the 15-minute verifier (Receipt D) |
@@ -233,7 +233,7 @@ The fair criticism of OpenClaw is that nobody shows results. So here are mine: w
 
 **6. Fallbacks.** `openclaw models fallbacks add <model>` so an outage degrades the agent instead of stopping it.
 
-**On an API key instead?** Two documented knobs do what the subscription does for me: `agents.defaults.params.cacheRetention: "long"` and `agents.defaults.contextPruning.mode: "cache-ttl"` (prunes old tool output after the cache window). Neither applies on the Claude CLI path, where a stable prefix is the only lever. And heartbeats are model turns too: every 30 minutes by default, hourly on a Claude login (`agents.defaults.heartbeat.every`).
+**On an API key instead?** Prompt caching is automatic there (5 minutes by default), and `agents.defaults.params.cacheRetention: "long"` stretches it to an hour; that knob is API-key only. Context pruning (`agents.defaults.contextPruning.mode: "cache-ttl"`, which trims old tool output after the cache window) is already switched on by default for Anthropic API keys and Claude logins alike, so on the Claude login path a small, stable prefix is the lever you actually control. And heartbeats are model turns too: every 30 minutes by default, hourly on a Claude login (`agents.defaults.heartbeat.every`).
 
 ```{=html}
 <div class="fig">
@@ -303,11 +303,11 @@ openclaw configure           # change settings later
 # Where everything lives {#files}
 
 ```text
-~/.openclaw/                      runtime, managed by OpenClaw (never commit this)
+~/.openclaw/                      runtime, managed by OpenClaw (never a git repo)
 ├── openclaw.json                 main config
 ├── agents/<id>/agent/            per-agent auth, sessions, memory index
 ├── media/                        files sent and received
-└── workspace/                    the agent's home (default location)
+└── workspace/                    the agent's home: put THIS under git
     ├── AGENTS.md                 operating rules, plus a "## Tools" section for local notes
     ├── SOUL.md                   persona, tone, boundaries
     ├── USER.md                   who you are, as dated directives
@@ -321,7 +321,7 @@ openclaw configure           # change settings later
 Move the workspace with `agents.defaults.workspace`. Put it under git: Ares has made 823 commits to its own, and that history is the best record of how an agent changes.
 
 ::: lesson
-- **Commit the workspace, never `~/.openclaw/`.** The runtime folder holds config, credentials and session history.
+- **Run `git init` inside the workspace folder, never in `~/.openclaw/` itself.** The runtime folder around it holds config, credentials and session history. Keep big generated folders (a Python `.venv`, downloads) out of the repo with a `.gitignore`.
 - **The workspace is the agent.** Back it up like it matters, because it's the only part you can't reinstall.
 :::
 
@@ -433,17 +433,17 @@ The cheapest setting is the one that gets it right the first time.
 /fast           fast mode: status, auto, on, off   /compact   summarise a long session
 ```
 
-| Job | What we use (September 2026) |
+| Job | Model (September 2026) |
 |-----|-----|
-| Daily driver, most work | Claude Sonnet 5 |
-| Hard reasoning, important decisions, long builds | Claude Opus 5.5 |
-| Quick, cheap lookups | Claude Haiku 4.5 |
+| Conversation, judgement, most work | Claude through a subscription login, thinking high |
+| Hard reasoning, important decisions, long builds | The top tier, Claude Opus 5.5 |
+| Quick, cheap lookups | The small tier, Claude Haiku 4.5 |
 | High-volume private work | Local models via Ollama and mlx-whisper (see How I tokenmaxx) |
 
 Set defaults in config: `agents.defaults.thinkingDefault` and `agents.defaults.fastModeDefault`, or per agent under `agents.entries.<id>`. Add fallbacks with `openclaw models fallbacks add <model>`.
 
 ::: lesson
-- **Low effort costs more than it saves.** On low thinking and fast mode, our agent confidently recommended a restaurant based on a 9-month-old listing. For anything with real-world consequences: thinking high, fast mode off. That's now the main agent's default.
+- **Low effort costs more than it saves.** On low-effort settings, our agent confidently recommended a restaurant based on a 9-month-old listing. For anything with real-world consequences: thinking high. That's now the main agent's default, with fast mode off too (on a Claude subscription login fast mode doesn't change the request anyway, per the docs; on API keys it trades cost for speed).
 - **Pick the model and thinking level at the start of a session.** Switching mid-session throws away the prompt cache.
 :::
 
@@ -455,6 +455,7 @@ This is the most important chapter. The agent runs with **your** permissions: it
 
 Permission modes control how shell commands get approved (`tools.exec.mode`):
 
+::: keep
 | Mode | What happens |
 |-|-------|
 | `deny` | No host shell commands at all |
@@ -462,17 +463,18 @@ Permission modes control how shell commands get approved (`tools.exec.mode`):
 | `ask` | Allowlisted commands run; anything new asks you first |
 | `auto` | Allowlist matches run; new ones are reviewed, and allowed, denied or escalated to you |
 | `full` | No ordinary prompts. Only on a machine you fully trust the agent with. |
+:::
 
 ```bash
-openclaw config set tools.exec.mode ask
+openclaw config set tools.exec.mode deny   # week 1; switch to ask in week 2
 openclaw gateway restart           # applies the new mode
 openclaw exec-policy show          # what's actually in effect after merging
 openclaw security audit            # risky settings; --fix applies safe remediations
-openclaw gateway stop              # KILL SWITCH: stops everything, now
-openclaw gateway status            # confirm it's down
+openclaw gateway stop --disable    # KILL SWITCH: stops it, stays stopped after a reboot
+openclaw gateway status            # confirm it's down (stop is scheduled, not instant)
 ```
 
-If you need to be sure it can't start again, also revoke the AI credentials.
+On macOS a plain `gateway stop` only lasts until the next reboot; `--disable` keeps it off until you run `openclaw gateway start`. If you need to be sure it can't start again, also revoke the AI credentials.
 
 ```{=html}
 <div class="fig">
@@ -583,7 +585,7 @@ One agent doing everything turns into one agent doing everything badly. The syst
 One gateway can run several isolated agents, each with its own workspace, memory and login.
 
 ```bash
-openclaw agents add work --workspace ~/.openclaw/workspace-work --bind telegram:*
+openclaw agents add work --workspace ~/.openclaw/workspace-work --bind 'telegram:*'
 openclaw agents bindings           # which channel, group or server goes to which agent
 ```
 
@@ -650,7 +652,7 @@ It will break. The skill isn't avoiding that, it's knowing which layer broke in 
 | It "can't" do what it did last week | Missing credential or tool | Check the credential index and `openclaw skills check` before accepting "can't" |
 | Memory database refuses connections | Every session holding its own pool | Raise the connection limit, close stale sessions |
 | Same alert every 15 minutes | No alert gate | Add dedupe and a cooldown |
-| Confident but wrong answers | Low thinking or fast mode | Raise thinking, fast mode off |
+| Confident but wrong answers | Low thinking level | Raise thinking (`/think high`) |
 | Bill or quota burning fast | Huge context, cache misses | `/status`, `/context`, then `/new` (see How I tokenmaxx) |
 
 # Operating principles {#principles}
@@ -670,7 +672,7 @@ It will break. The skill isn't avoiding that, it's knowing which layer broke in 
 ```bash
 # Gateway and health
 openclaw gateway status
-openclaw gateway stop    # kill switch
+openclaw gateway stop --disable  # kill switch
 openclaw status --deep   # probe channels
 openclaw channels status
 openclaw doctor --fix

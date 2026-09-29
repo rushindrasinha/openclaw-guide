@@ -96,7 +96,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("md"); ap.add_argument("pdf"); ap.add_argument("--title", required=True)
     a = ap.parse_args()
-    tmp = tempfile.mkdtemp()
+    if not shutil.which("pdftotext") or not shutil.which("pdfinfo"):
+        sys.exit("build_guide: poppler (pdftotext, pdfinfo) is required for contents page numbers; brew install poppler")
+    with tempfile.TemporaryDirectory() as tmp:
+        build(a, tmp)
+    if re.search(rb"file://", open(a.pdf, "rb").read()):
+        sys.exit(f"build_guide: {a.pdf} contains a file:// link (a relative link leaked a local path); use an absolute URL")
+
+
+def build(a, tmp):
     raw = os.path.join(tmp, "raw.html")
     pandoc(a.md, raw, a.title)
     doc = open(raw, encoding="utf-8").read()
@@ -111,7 +119,7 @@ def main():
             d = re.sub(r'<span class="mk">@@ch-[^@]+@@</span>', "", d)
         open(out_html, "w", encoding="utf-8").write(d)
 
-    if has_toc and shutil.which("pdftotext"):
+    if has_toc:
         write({}, True)  # pass 1: invisible markers locate each chapter's page
         chrome(out_html, a.pdf)
         pages = find_pages(a.pdf, chapters)
@@ -125,9 +133,6 @@ def main():
     else:
         write({}, False)
         chrome(out_html, a.pdf)
-    shutil.rmtree(tmp)
-    if re.search(rb"file://", open(a.pdf, "rb").read()):
-        sys.exit(f"build_guide: {a.pdf} contains a file:// link (a relative link leaked a local path); use an absolute URL")
     print(f"built {a.pdf}: {len(chapters)} chapters")
 
 
