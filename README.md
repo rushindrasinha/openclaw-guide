@@ -1,136 +1,96 @@
 <p align="center">
-  <img src="docs/openclaw-bible-cover.png" alt="OpenClaw Bible cover" width="48%" />
-  <img src="docs/openclaw-full-stack-cover.png" alt="OpenClaw Full Stack cover" width="48%" />
+  <img src="docs/starter-cover.png" alt="AI chief of staff starter guide" width="31%" />
+  <img src="docs/openclaw-bible-cover.png" alt="OpenClaw Bible cover" width="31%" />
+  <img src="docs/openclaw-full-stack-cover.png" alt="OpenClaw Full Stack cover" width="31%" />
 </p>
 
 <h1 align="center">OpenClaw Guide</h1>
 
 <p align="center">
-  <strong>The field manual for running a real self-hosted AI agent on your own hardware.</strong>
+  <strong>How I run a real self-hosted AI chief of staff, and how you can build your own.</strong>
 </p>
 
 <p align="center">
-  Built and battle-tested by <a href="https://x.com/irushi">@irushi</a> running agents Ares and Sam on Apple Silicon since 2025.
+  By <a href="https://x.com/irushi">@irushi</a>, from running my agent Ares every day across WhatsApp, Discord and a fleet of seven machines.<br/>
+  <em>Updated September 2026 for OpenClaw 2026.9.x.</em>
 </p>
 
 <p align="center">
-  <a href="./openclaw-bible.pdf">OpenClaw Bible (19 pages)</a> •
-  <a href="./openclaw-full-stack.pdf">OpenClaw Full Stack (5 pages)</a> •
-  <a href="https://docs.openclaw.ai">OpenClaw Docs</a> •
-  <a href="https://clawhub.ai">ClawHub</a>
+  <a href="./start-here/ai-chief-of-staff-starter.pdf"><b>Start here (3 pages)</b></a> •
+  <a href="./openclaw-bible.pdf">OpenClaw Bible (21 pages)</a> •
+  <a href="./openclaw-full-stack.pdf">Full Stack (7 pages)</a> •
+  <a href="https://docs.openclaw.ai">OpenClaw Docs</a>
 </p>
 
 ---
 
-## What this repo is
+## Which one should I read?
 
-This repo is not a theory deck.
+| If you… | Read |
+|---|---|
+| saw my post and want the idea in 5 minutes, no code | **[Start here: How I'd build an AI chief of staff from scratch](./start-here/ai-chief-of-staff-starter.pdf)** |
+| are ready to set up OpenClaw properly | **[The OpenClaw Bible](./openclaw-bible.pdf)** |
+| want the exact tools, models and services behind my setup | **[OpenClaw Full Stack](./openclaw-full-stack.pdf)** |
 
-It is the exact guide and package stack I would hand to someone who wants to go from **zero** to a functioning, self-hosted OpenClaw agent with:
-- a real identity layer
-- real channels
-- real tooling
-- real memory
-- real safety constraints
-- real operating cost awareness
+## What's inside
 
-If you want the shortest path to a serious personal AI system, start here.
+### 1) Start here: AI chief of staff starter (3 pages)
+The five ideas that turned a chatbot into a chief of staff, a first-week plan, what not to automate yet, and the mistakes I made. No code.
 
-## What’s inside
+### 2) The OpenClaw Bible (21 pages)
+The field manual. Every chapter has **the setup** (how OpenClaw works today) and **the lesson** (what running it for real taught me):
+- installing and onboarding (reusing your Claude login)
+- the workspace and the **Soul Stack** (`SOUL.md`, `AGENTS.md`, `USER.md`, `MEMORY.md`)
+- channels, and what each one is good for
+- secrets without ever pasting a key into chat
+- models, thinking levels and cost
+- **security**: permission modes, kill switches, and the lock-down-then-loosen method
+- skills, automations, heartbeats and memory
+- multiple agents and running a fleet of machines
+- what breaks and how to fix it
 
-### 1) OpenClaw Bible
-**[`openclaw-bible.pdf`](./openclaw-bible.pdf)**
-
-A 19-page setup manual covering the full operating model:
-- what OpenClaw actually is
-- installation and directory structure
-- the **Soul Stack** (`SOUL.md`, `AGENTS.md`, `MEMORY.md`, `HEARTBEAT.md`)
-- channel setup
-- token and API key management
-- usage monitoring and cost control
-- safety and security
-- skills, cron jobs, and heartbeats
-- memory architecture
-- multi-agent setup
-- prompt engineering
-- common issues and fixes
-
-### 2) OpenClaw Full Stack
-**[`openclaw-full-stack.pdf`](./openclaw-full-stack.pdf)**
-
-A 5-page replication checklist for the exact software stack:
-- global npm packages
-- Homebrew packages
-- Python environment and dependencies
-- OpenClaw skills to install
-- media, browser, GitHub, and Google Workspace tooling
+### 3) OpenClaw Full Stack (7 pages)
+A snapshot of the live toolchain: core install, Claude plus local models (Ollama, Whisper), CLI tools, Node and Python packages, memory (including GBrain), the skills that earn their keep, background health services, and a fresh-install order.
 
 ## The 5 ideas that matter most
 
-### 1. The Soul Stack is the core system
-The most important part of an agent is not its tools — it is the identity and operating layer defined by files like `SOUL.md`, `AGENTS.md`, `MEMORY.md`, and `HEARTBEAT.md`.
-
-### 2. OpenClaw is self-hosted infrastructure, not a chat toy
-You run it on your own machine, wire it to your own models, and give it access to real execution surfaces like shell, browser, files, and messaging channels.
-
-### 3. One agent can span multiple channels and workflows
-The same agent can operate across WhatsApp, Telegram, Discord, iMessage, and more while keeping a coherent operating model.
-
-### 4. Safety is not optional
-If your agent has access to shell, files, and messaging, you need explicit identity, permissions, cost limits, and behavioral rules.
-
-### 5. Memory and heartbeat behavior determine whether the system feels alive
-A useful agent is not just responsive — it remembers, tracks context, and proactively does work when the moment calls for it.
+1. **Give it a memory.** Plain files it reads every session, plus a knowledge graph once it grows. If it isn't written down, it didn't happen.
+2. **Give it hands.** Tools, skills and scripts, so it acts instead of just answering.
+3. **Put it on a schedule.** Automations are what turn an assistant into a chief of staff.
+4. **Make it learn from mistakes.** Every error becomes one line in a rules file.
+5. **Keep the final say.** Draft anything; send, post, pay or delete only with your approval.
 
 ## Quick start
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash
-openclaw onboard --install-daemon
+npx openclaw@latest            # or: curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway install       # keep it running in the background
 openclaw gateway status
 openclaw dashboard
 ```
 
 Then:
-1. read the **Bible** first
-2. write your `SOUL.md`
-3. use the **Full Stack** doc to replicate the surrounding toolchain
-4. connect one channel
-5. test one real workflow end-to-end
+1. write your `SOUL.md` and `USER.md`
+2. set shell commands to `ask` mode and run `openclaw security audit`
+3. connect one channel (your own chat)
+4. turn on one automation: a morning brief
+5. check it end to end: message it from your phone and get a real answer
 
-## Who this is for
+## Related repos
 
-This repo is for:
-- founders building a personal AI operating system
-- operators who want a real self-hosted agent instead of a SaaS wrapper
-- creators who want agents inside messaging and media workflows
-- developers who want to understand how a production OpenClaw stack is actually assembled
+- [ares-skills](https://github.com/rushindrasinha/ares-skills): production-tested OpenClaw skills
+- [skill-audit-router](https://github.com/rushindrasinha/skill-audit-router): find out which of your agent's skills it can actually find
+- [ares-mbl](https://github.com/rushindrasinha/ares-mbl): make other models behave more like Claude
+- [openclaw-mac](https://github.com/rushindrasinha/openclaw-mac): one-command Mac setup
 
-This repo is **not** for someone looking for a one-click toy demo.
+## Building the PDFs
 
-## Cost and hardware expectations
+The PDFs are generated from the Markdown in [`guides/`](./guides) and the HTML in [`start-here/`](./start-here). Edit those, then run `./build.sh` (needs `pandoc` and Google Chrome).
 
-- recommended model starting point: **Claude Sonnet**
-- expected operating cost for a serious dual-agent setup: **~$30–80/month**
-- recommended hardware: **Apple Silicon Mac mini / MacBook**, though Linux and VPS setups are also viable
+## Changelog
 
-## Why this repo exists
-
-Most AI agent content online is either:
-- too abstract
-- too beginner-fluffy
-- or too fragmented to reproduce
-
-This repo exists to close that gap.
-
-It gives you the documents I wish I had when wiring a real self-hosted agent stack from scratch.
-
-## Related links
-
-- [OpenClaw Docs](https://docs.openclaw.ai)
-- [ClawHub Skills](https://clawhub.ai)
-- [Rushi on X](https://x.com/irushi)
+See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Usage
 
-These docs are public so builders can learn from and adapt the setup. If you build something from this, tag me — I want to see what you make.
+These docs are public so builders can learn from and adapt the setup. If you build something from this, tag me. I want to see what you make.
