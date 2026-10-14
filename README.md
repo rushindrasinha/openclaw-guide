@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  By <a href="https://x.com/irushi">@irushi</a>, from running my agent Ares every day across WhatsApp, Discord and a fleet of seven machines.<br/>
+  By <a href="https://rushindra.com">Dr Rushindra Sinha</a> (<a href="https://x.com/irushi">@irushi</a>, <a href="https://www.instagram.com/rushindrasinha/">@rushindrasinha</a>), from running my agent Ares every day across WhatsApp, Discord and a fleet of seven machines.<br/>
   <em>Updated September 2026 for OpenClaw 2026.9.x.</em>
 </p>
 
@@ -20,6 +20,10 @@
   <a href="./openclaw-bible.pdf">OpenClaw Bible (18 pages)</a> •
   <a href="./openclaw-full-stack.pdf">Full Stack (6 pages)</a> •
   <a href="https://docs.openclaw.ai">OpenClaw Docs</a>
+</p>
+
+<p align="center">
+  All three guides in one place: <a href="https://rushindra.com/ares"><b>rushindra.com/ares</b></a>
 </p>
 
 ---
